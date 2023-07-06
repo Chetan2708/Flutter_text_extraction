@@ -1,0 +1,7 @@
+const NATURAL_LANGUAGE_UNDERSTANDING_APIKEY =
+    "z8jc1S2EKSxeM6ZO632HFd3C6lGodl2UKCPTlK_gABLM";
+const NATURAL_LANGUAGE_UNDERSTANDING_IAM_APIKEY =
+    "z8jc1S2EKSxeM6ZO632HFd3C6lGodl2UKCPTlK_gABLM";
+const NATURAL_LANGUAGE_UNDERSTANDING_URL =
+    'https://api.eu-gb.natural-language-understanding.watson.cloud.ibm.com/instances/ec7bb1a9-623b-423f-aa19-de8cb6110242';
+const NATURAL_LANGUAGE_UNDERSTANDING_AUTH_TYPE = "iam";

@@ -5,6 +5,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_keys.dart';
+import 'UserPage.dart';
 
 class RecognizePage extends StatefulWidget {
   final String? path;

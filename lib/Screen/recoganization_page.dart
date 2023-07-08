@@ -1,11 +1,12 @@
-import 'dart:developer';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'dart:developer';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_keys.dart';
-import 'UserPage.dart';
+// import 'UserPage.dart';
+import 'EditableUserPage.dart';
 
 class RecognizePage extends StatefulWidget {
   final String? path;
@@ -16,9 +17,19 @@ class RecognizePage extends StatefulWidget {
 }
 
 class _RecognizePageState extends State<RecognizePage> {
-  bool _isBusy = false;
+  bool comp =
+      false; // this variable will track ki api has completed it's work or not?
+  bool _isLoad = true;
 
   TextEditingController controller = TextEditingController();
+  List<dynamic> entities = [];
+  List<String> organizationEntities = [];
+  List<String> personEntities = [];
+  String course = '';
+  String userName = '';
+  String userOrg = '';
+  String userCourse = '';
+  String txt2 = '';
 
   @override
   void initState() {
@@ -32,20 +43,10 @@ class _RecognizePageState extends State<RecognizePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text(" Text Extracted Sucessfully ")),
-        body: _isBusy == true
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : Container(
-                padding: const EdgeInsets.all(20),
-                child: TextFormField(
-                  maxLines: MediaQuery.of(context).size.height.toInt(),
-                  controller: controller,
-                  decoration:
-                      const InputDecoration(hintText: "Text goes here..."),
-                ), // here's the snippet for the raw text field
-              ));
+        // appBar: AppBar(title: const Text(" Text Extracted Sucessfully ")),
+        body: _isLoad
+            ? const Center(child: CircularProgressIndicator())
+            : EditableUserPage(name: userName, org: userOrg, txt: txt2));
   }
 
   Future<void> analyzeEntitiesAPI(String rawData) async {
@@ -76,10 +77,7 @@ class _RecognizePageState extends State<RecognizePage> {
       // Extracting entities of type 'Person'
 
       if (data.containsKey('entities')) {
-        final List<dynamic> entities = data['entities'];
-        List<String> organizationEntities = [];
-        List<String> personEntities = [];
-        String course = '';
+        entities = data['entities'];
         for (var entity in entities) {
           if (entity.containsKey('type') && entity.containsKey('text')) {
             if (entity['type'] == 'Person') {
@@ -95,25 +93,78 @@ class _RecognizePageState extends State<RecognizePage> {
         print('Person Entities: $personEntities');
         print('Organization Entities: $organizationEntities');
         print('Course: $course');
-      } else {
-        print('No entities found in the response.');
+        comp = true;
+
+        // final int startIndex = rawData.indexOf("has successfully completed");
+
+        // if (startIndex != -1) {
+        //   // Find the index of "by" or "from" after the startIndex
+        //   final int endIndexBy = rawData.indexOf("by", startIndex);
+        //   final int endIndexFrom = rawData.indexOf("from", startIndex);
+
+        //   // Find the index of the first occurrence of "by" or "from" after the startIndex
+        //   final int endIndex = (endIndexBy != -1 && endIndexBy > startIndex)
+        //       ? endIndexBy
+        //       : (endIndexFrom != -1 && endIndexFrom > startIndex)
+        //           ? endIndexFrom
+        //           : -1;
+
+        //   if (endIndex != -1) {
+        //     // Extract the text between startIndex and endIndex
+        //     final String extractedText =
+        //         rawData.substring(startIndex, endIndex);
+        //         print('This is the extracted text' + extractedText.trim());
+        //     // Update the userCourse variable
+        //     setState(() {
+        //       userCourse = extractedText.trim();
+        //     });
+        //   }
+        // }
+        if (personEntities.isEmpty && organizationEntities.isEmpty) {
+          setState(() {
+            userName = '';
+            userOrg = '';
+            txt2 = "Sorry , wasn't able to understand the image!";
+          });
+        } else if (personEntities.isEmpty) {
+          setState(() {
+            userName = '';
+            txt2 =
+                "Sorry , wasn't able to understand name try filling it yourself.";
+          });
+        }
+        if (organizationEntities.isEmpty) {
+          setState(() {
+            userOrg = '';
+            txt2 =
+                "Sorry , wasn't able to understand organisation try filling it yourself.";
+          });
+        }
+        // retrieving the original string that is needed
+        // String org = organizationEntities[0];
+        // String organization = org.substring(0, org.indexOf(" "));
+        // reDirectUserTo(personEntities[0], organization,course); // isko idher pe name, org and course pass krna hoga as arguments
+
+        // making some changes->
+        setState(() {
+          _isLoad = false;
+          userName = personEntities[0];
+          userOrg = organizationEntities[0];
+        });
       }
     } else {
       print(
           'Request failed with status: ${response.statusCode}. ${response.body}');
     }
   }
-  // Firebase: Collections and Documents
-  // col/doc/col/doc
-  // col/ doc1, doc2, doc3....
 
   // to send data as text blocks
 
-  Future<void> _addDataToFirebase(blocks) async {
-    CollectionReference textsCollectionRef =
-        FirebaseFirestore.instance.collection('texts');
-    await textsCollectionRef.add({'blocks': FieldValue.arrayUnion(blocks)});
-  }
+  // Future<void> _addDataToFirebase(blocks) async {
+  //   CollectionReference textsCollectionRef =
+  //       FirebaseFirestore.instance.collection('texts');
+  //   await textsCollectionRef.add({'blocks': FieldValue.arrayUnion(blocks)});
+  // }
 
   void processImage(InputImage image) async {
     final textRecognizer = TextRecognizer();

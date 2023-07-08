@@ -1,48 +1,76 @@
-// Here's a valid Dart code block for a new screen with two text areas for name and organization:
-
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:test/UserTextField.dart';
+import 'package:test/colors.dart';
 
-class NewScreen extends StatefulWidget {
+class EditableUserPage extends StatefulWidget {
+  final String name, org, txt 
+  // course
+  ;
+
+  const EditableUserPage({
+    Key? key,
+    required this.name,
+    required this.org,
+    required this.txt,
+    // required this.course, 
+  }) : super(key: key);
+
   @override
-  _NewScreenState createState() => _NewScreenState();
+  _EditableUserPageState createState() => _EditableUserPageState();
 }
 
-class _NewScreenState extends State<NewScreen> {
-  final _nameController = TextEditingController();
-  final _orgController = TextEditingController();
+class _EditableUserPageState extends State<EditableUserPage> {
+  bool showText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 12), () {
+      setState(() {
+        showText = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('New Screen'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Pallete.blackColor,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name'),
-            TextField(
-              controller: _nameController,
+            Image.asset("assets/bg.png"),
+            const SizedBox(height: 2),
+            const Text(
+              "Details",
+              style: TextStyle(
+                color: Pallete.whiteColor,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16.0),
-            Text('Organization'),
-            TextField(
-              controller: _orgController,
-            ),
+            const SizedBox(height: 10),
+            UserTextField(label: "Name", showText: widget.name), // for username
+            const SizedBox(height: 10),
+            UserTextField(label: "Organization", showText: widget.org), // for user org
+            const SizedBox(height: 10),
+            // UserTextField(label: "Course", showText: widget.course), // for user course
+            // const SizedBox(height: 10),
+            if (showText)
+              Text(
+                widget.txt,
+                style: const TextStyle(
+                  color: Pallete.whiteColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _orgController.dispose();
-    super.dispose();
-  }
 }
-
-// This code creates a new screen with an app bar and a body containing two text areas for name and organization. The text areas are implemented with TextField widgets and their values can be accessed through the _nameController and _orgController objects. The dispose() method is used to clean up the controllers when the widget is removed from the tree.

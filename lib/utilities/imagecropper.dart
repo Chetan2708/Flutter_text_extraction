@@ -4,7 +4,7 @@ import 'package:image_cropper/image_cropper.dart';
 
 
 Future<String> imageCropperView(String? path, BuildContext context) async {
-  CroppedFile? croppedFile = await ImageCropper().cropImage(
+   CroppedFile? croppedFile = await ImageCropper().cropImage(
     sourcePath: path!,
     aspectRatioPresets: [
       CropAspectRatioPreset.square,

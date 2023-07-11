@@ -4,16 +4,14 @@ import 'package:test/UserTextField.dart';
 import 'package:test/colors.dart';
 
 class EditableUserPage extends StatefulWidget {
-  final String name, org, txt 
-  // course
-  ;
+  final String name, org, txt, Date;
 
   const EditableUserPage({
     Key? key,
     required this.name,
     required this.org,
     required this.txt,
-    // required this.course, 
+    required this.Date,
   }) : super(key: key);
 
   @override
@@ -26,7 +24,7 @@ class _EditableUserPageState extends State<EditableUserPage> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 12), () {
+    Timer(const Duration(seconds: 7), () {
       setState(() {
         showText = false;
       });
@@ -42,8 +40,9 @@ class _EditableUserPageState extends State<EditableUserPage> {
         color: Pallete.blackColor,
         child: Column(
           children: [
-            Image.asset("assets/bg.png"),
-            const SizedBox(height: 2),
+            const SizedBox(height: 50),
+            Image.asset("assets/logo.jpg"),
+            const SizedBox(height: 50),
             const Text(
               "Details",
               style: TextStyle(
@@ -55,10 +54,13 @@ class _EditableUserPageState extends State<EditableUserPage> {
             const SizedBox(height: 10),
             UserTextField(label: "Name", showText: widget.name), // for username
             const SizedBox(height: 10),
-            UserTextField(label: "Organization", showText: widget.org), // for user org
+            UserTextField(
+                label: "Organization", showText: widget.org), // for user org
             const SizedBox(height: 10),
-            // UserTextField(label: "Course", showText: widget.course), // for user course
-            // const SizedBox(height: 10),
+            UserTextField(
+                label: "Completion Date",
+                showText: widget.Date), // for user course
+            const SizedBox(height: 10),
             if (showText)
               Text(
                 widget.txt,

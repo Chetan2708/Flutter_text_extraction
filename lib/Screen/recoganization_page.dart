@@ -5,8 +5,9 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_keys.dart';
-// import 'UserPage.dart';
+import 'UserPage.dart';
 import 'EditableUserPage.dart';
+  
 
 class RecognizePage extends StatefulWidget {
   final String? path;
@@ -29,6 +30,7 @@ class _RecognizePageState extends State<RecognizePage> {
   String userName = '';
   String userOrg = '';
   String userCourse = '';
+  String date = '';
   String txt2 = '';
 
   @override
@@ -46,7 +48,7 @@ class _RecognizePageState extends State<RecognizePage> {
         // appBar: AppBar(title: const Text(" Text Extracted Sucessfully ")),
         body: _isLoad
             ? const Center(child: CircularProgressIndicator())
-            : EditableUserPage(name: userName, org: userOrg, txt: txt2));
+            : EditableUserPage(name: userName, org: userOrg, txt: txt2 , Date:date ));
   }
 
   Future<void> analyzeEntitiesAPI(String rawData) async {
@@ -54,6 +56,7 @@ class _RecognizePageState extends State<RecognizePage> {
     const String url = NATURAL_LANGUAGE_UNDERSTANDING_URL;
 
     print(rawData);
+
     final String text = 'www.ibm.com';
 
     final Map<String, dynamic> body = {
@@ -75,7 +78,6 @@ class _RecognizePageState extends State<RecognizePage> {
       final Map<String, dynamic> data = jsonDecode(response.body);
 
       // Extracting entities of type 'Person'
-
       if (data.containsKey('entities')) {
         entities = data['entities'];
         for (var entity in entities) {
@@ -95,68 +97,101 @@ class _RecognizePageState extends State<RecognizePage> {
         print('Course: $course');
         comp = true;
 
-        // final int startIndex = rawData.indexOf("has successfully completed");
-
-        // if (startIndex != -1) {
-        //   // Find the index of "by" or "from" after the startIndex
-        //   final int endIndexBy = rawData.indexOf("by", startIndex);
-        //   final int endIndexFrom = rawData.indexOf("from", startIndex);
-
-        //   // Find the index of the first occurrence of "by" or "from" after the startIndex
-        //   final int endIndex = (endIndexBy != -1 && endIndexBy > startIndex)
-        //       ? endIndexBy
-        //       : (endIndexFrom != -1 && endIndexFrom > startIndex)
-        //           ? endIndexFrom
-        //           : -1;
-
-        //   if (endIndex != -1) {
-        //     // Extract the text between startIndex and endIndex
-        //     final String extractedText =
-        //         rawData.substring(startIndex, endIndex);
-        //         print('This is the extracted text' + extractedText.trim());
-        //     // Update the userCourse variable
-        //     setState(() {
-        //       userCourse = extractedText.trim();
-        //     });
-        //   }
-        // }
         if (personEntities.isEmpty && organizationEntities.isEmpty) {
           setState(() {
             userName = '';
             userOrg = '';
-            txt2 = "Sorry , wasn't able to understand the image!";
+            txt2 = "Sorry, wasn't able to understand the image!";
           });
         } else if (personEntities.isEmpty) {
           setState(() {
             userName = '';
             txt2 =
-                "Sorry , wasn't able to understand name try filling it yourself.";
+                "Sorry, wasn't able to understand the name. Please fill it yourself.";
           });
-        }
-        if (organizationEntities.isEmpty) {
+        } else if (organizationEntities.isEmpty) {
           setState(() {
             userOrg = '';
             txt2 =
-                "Sorry , wasn't able to understand organisation try filling it yourself.";
+                "Sorry, wasn't able to understand the organization. Please fill it yourself.";
           });
         }
-        // retrieving the original string that is needed
-        // String org = organizationEntities[0];
-        // String organization = org.substring(0, org.indexOf(" "));
-        // reDirectUserTo(personEntities[0], organization,course); // isko idher pe name, org and course pass krna hoga as arguments
 
-        // making some changes->
+        String? extractedDate = fetchDate(rawData);
+
+        if (extractedDate != null) {
+          setState(() {
+            date = extractedDate;
+          });
+          // Do something with the extracted date
+        } else {
+          setState(() {
+            date = 'NIL';
+          });
+        }
+
         setState(() {
           _isLoad = false;
           userName = personEntities[0];
           userOrg = organizationEntities[0];
         });
+        for (String organization in predefinedOrg) {
+          if (rawData.toLowerCase().contains(organization.toLowerCase())) {
+            setState(() {
+              userOrg = organization;
+            });
+          }
+        }
+        for (String prename in Names) {
+          if (rawData.toLowerCase().contains(prename.toLowerCase())) {
+            setState(() {
+              userName = prename;
+            });
+          }
+        }
       }
     } else {
       print(
           'Request failed with status: ${response.statusCode}. ${response.body}');
     }
   }
+
+  String? fetchDate(String rawData) {
+    RegExp exp1 = RegExp(r'(\d{4}-\d{2}-\d{2})'); // yyyy-mm-dd
+    RegExp exp2 = RegExp(r'(\d{4}/\d{2}/\d{2})'); // yyyy/mm/dd
+    RegExp exp3 = RegExp(r'(\d{2}-\d{2}-\d{4})'); // dd-mm-yyyy
+    RegExp exp4 = RegExp(r'(\d{2}/\d{2}/\d{4})'); // dd/mm/yyyy
+    RegExp exp5 = RegExp(
+        r'([A-Za-z]+,\s[A-Za-z]+\s\d{1,2},\s\d{4})'); // Monday, September 29, 2014
+    List<RegExp> patterns = [
+      exp1,exp2,exp3,exp4,exp5, RegExp(r'[A-Za-z]+,\s[A-Za-z]+\s\d{1,2},\s\d{4}'), // Tuesday, September 06, 2022
+      RegExp(r'[A-Za-z]+,\s[A-Za-z]+\s\d{1,2},\s\d{2}'), // Tuesday, September 06, 22
+      RegExp(r'[A-Za-z]+\s\d{1,2},\s\d{4}'), // September 06, 2022
+      RegExp(r'[A-Za-z]+\s\d{1,2},\s\d{2}'), // September 06, 22
+      RegExp(r'\d{1,2}\s[A-Za-z]+\,\s\d{4}'), // 06 September, 2022
+      RegExp(r'\d{1,2}\s[A-Za-z]+\,\s\d{2}'), // 06 September, 22
+      RegExp(r'\d{1,2}\s[A-Za-z]+\s\d{4}'), // 06 September 2022
+      RegExp(r'\d{1,2}\s[A-Za-z]+\s\d{2}'), // 06 September 22
+      RegExp(r'\d{1,2}/\d{1,2}/\d{4}'), // 06/12/2022
+      RegExp(r'\d{1,2}-\d{1,2}-\d{4}'), // 06-12-2022
+      RegExp(r'\d{4}/\d{1,2}/\d{1,2}'), // 2022/12/06
+      RegExp(r'\d{4}-\d{1,2}-\d{1,2}'), // 2022-12-06
+    ];
+
+    String? extractedDate;
+    for (RegExp pattern in patterns) {
+      RegExpMatch? match = pattern.firstMatch(rawData);
+      if (match != null) {
+        extractedDate = match.group(0);
+        break;
+      }
+    }
+
+    return extractedDate;
+  }
+  // Firebase: Collections and Documents
+  // col/doc/col/doc
+  // col/ doc1, doc2, doc3....
 
   // to send data as text blocks
 
